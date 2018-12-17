@@ -27,3 +27,19 @@ For images, RBC uses optical character recognition (OCR) to try and extract info
   - [exiftool](https://smarnach.github.io/pyexiftool/) (download directly from [here](https://raw.githubusercontent.com/smarnach/pyexiftool/master/exiftool.py))
   - magic (`sudo apt install python-magic`)
   - dateparser (`sudo pip install dateparser`)
+
+## Installation
+
+* download [rename_by_content.py](https://github.com/sanette/rename_by_content/blob/master/rename_by_content.py)
+
+* download [exiftool.py](https://raw.githubusercontent.com/smarnach/pyexiftool/master/exiftool.py) in the same directory
+
+* make sure the other tools mentioned above are installed on your system
+
+## Usage
+
+```
+python ./rename_by_content.py [-h] [-d] [-b] [--output OUTPUT] [--log LOG]                                                                                                       
+                            [--ocrdir OCRDIR]                                                                                                                                  
+                            files [files ...]
+```
