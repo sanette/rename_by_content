@@ -45,3 +45,27 @@ python ./rename_by_content.py [-h] [-d] [-b]
                               [--ocrdir OCRDIR]  
                               files [files ...]
 ```
+
+Search for a title and a date for all `files`, and copy the renamed
+files in `OUTPUT`.
+
+The name is misleading, it actually _copies_ the files in the `OUTPUT`
+directory. The original files are not affected (apart from being read,
+of course).
+
+* The directory `OCRDIR` contains all the texts extracted from the
+  given `files`. If you run RBC a second time with the same `OCRDIR`,
+  it will use the previously generated text, and hence run much
+  faster.
+
+* The `LOG` file contains a list of all operations done, and the list
+  of errors. This file can be use to cancel the operation, that is,
+  remove all files that have been copied. For this, use the python
+  function `remove_from_summary`.
+
+* `-b` or `--batch`: Batch mode: doesn't wait for user input.
+
+* `-d` or `--dry`: Dry-run mode: does everything _but_ the final
+  copy. However, the text files are generated in `OCRDIR` and the
+  `LOG` is written.
+  
