@@ -71,4 +71,10 @@ of course).
 * `-d` or `--dry`: Dry-run mode: does everything _but_ the final
   copy. However, the text files are generated in `OCRDIR` and the
   `LOG` is written.
-  
+
+### Example
+
+`python ./rename_by_content.py -o /tmp/newfiles /home/joe/recup_dir/*`
+
+This will examine all files in `/home/joe/recup_dir/*` and copy them,
+with new names, in `/tmp/newfiles`.
