@@ -39,7 +39,9 @@ For images, RBC uses optical character recognition (OCR) to try and extract info
 ## Usage
 
 ```
-python ./rename_by_content.py [-h] [-d] [-b] [--output OUTPUT] [--log LOG]                                                                                                       
-                            [--ocrdir OCRDIR]                                                                                                                                  
-                            files [files ...]
+python ./rename_by_content.py [-h] [-d] [-b]  
+                              [--output OUTPUT]
+                              [--log LOG]  
+                              [--ocrdir OCRDIR]  
+                              files [files ...]
 ```
