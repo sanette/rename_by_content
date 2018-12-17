@@ -10,7 +10,8 @@ For images, RBC uses optical character recognition (OCR) to try and extract info
 
 ## Requirements
 
-* A linux machine with several opensource utilities:
+* A linux machine with several opensource utilities (should work on a
+  mac too, in principle):
 
   - exiftool (extract files metadata)
   - tesseract (great OCR program). Use version 4 for best results (there is a ppa for ubuntu, see [here](https://github.com/tesseract-ocr/tesseract/wiki))
