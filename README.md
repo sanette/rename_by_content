@@ -53,6 +53,9 @@ The name is misleading, it actually _copies_ the files in the `OUTPUT`
 directory. The original files are not affected (apart from being read,
 of course).
 
+* `files` can be the path of a single file, or a shell syntax of the
+  form `dir/*` if you want to treat all files in the `dir` directory.
+
 * The directory `OCRDIR` contains all the texts extracted from the
   given `files`. If you run RBC a second time with the same `OCRDIR`,
   it will use the previously generated text, and hence run much
