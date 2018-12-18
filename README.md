@@ -83,7 +83,7 @@ with new names, in `/tmp/newfiles`.
 
 ### In python programs
 
-See the file `example.py`.
+See the file [`example.py`](https://github.com/sanette/rename_by_content/blob/master/example.py).
 
 Essentially your have to do
 
@@ -103,11 +103,12 @@ You may also use the optional arguments `dry` and `ocr_dir`:
 
 _Other utilities:_
 
- - `rbc.mkdir(path)`: create the directory if it does not exist.
+ - `rbc.mkdir(path)`: create the `path` directory if it does not exist.
  
- - `rbc.ocr_dir()`: give the directory used for storing extracted texts.
+ - `rbc.ocr_dir()`: return the temporary directory used for storing
+   extracted texts.
 
- - `rbc.clear_ocr()`: remove this temporary directory.
+ - `rbc.clear_ocr()`: remove that temporary directory.
 
  - `rbc.copy_unique(src_dir, dst_dir)`: copy all files from `src_dir` into
    `dst_dir`, but never overwrites: if a file with the same name
