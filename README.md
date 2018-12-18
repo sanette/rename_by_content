@@ -96,10 +96,10 @@ and then you may use the function
  - `rbc.batch(files, newdir)`, which will treat all `files` and copy
    them with their new title in `newdir`.
 
-You may also use the optional arguments `dry` and `ocr_dir`:
- * `dry` is a boolean. If true, the final copy is _not_ done.
- * `ocr_dir` is the path of the temporary directory used to store
-   texts extracted from the files.
+   You may also use the optional arguments `dry` and `ocr_dir`:
+     * `dry` is a boolean. If true, the final copy is _not_ done.
+     * `ocr_dir` is the path of the temporary directory used to store
+       texts extracted from the files.
 
 _Other utilities:_
 
