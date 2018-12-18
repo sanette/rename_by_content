@@ -80,3 +80,40 @@ of course).
 
 This will examine all files in `/home/joe/recup_dir/*` and copy them,
 with new names, in `/tmp/newfiles`.
+
+### In python programs
+
+See the file `example.py`.
+
+Essentially your have to do
+
+```
+import rename_by_content as rbc
+```
+
+and then you may use the function
+
+ - `rbc.batch(files, newdir)`, which will treat all `files` and copy
+   them with their new title in `newdir`.
+
+You may also use the optional arguments `dry` and `ocr_dir`:
+ * `dry` is a boolean. If true, the final copy is _not_ done.
+ * `ocr_dir` is the path of the temporary directory used to store
+   texts extracted from the files.
+
+_Other utilities:_
+
+ - `rbc.mkdir(path)`: create the directory if it does not exist.
+ 
+ - `rbc.ocr_dir()`: give the directory used for storing extracted texts.
+
+ - `rbc.clear_ocr()`: remove this temporary directory.
+
+ - `rbc.copy_unique(src_dir, dst_dir)`: copy all files from `src_dir` into
+   `dst_dir`, but never overwrites: if a file with the same name
+   already exists in `dst_dir`, the file from `src_dir `will have a
+   numbered suffix like '_01'.
+
+   This is useful if you have run `rbc.batch` with several destination
+   directories, and finally you want to group everything in the same
+   location.

@@ -34,7 +34,8 @@ import subprocess
 import errno
 import os
 import time
-from shutil import copyfile, copystat
+from shutil import copyfile, copystat, rmtree
+import tempfile
 import zipfile
 import codecs
 import datetime
@@ -57,12 +58,13 @@ import dateparser.search
 # Global variables #
 #------------------#
 
-OCR_DIR = "/tmp/ocr" # where to store TXT and OCRed docs
+OCR_DIR = None # where to store TXT and OCRed docs
+CUSTOM_OCR_DIR = False
 MIN_YEAR = 1900
 MAX_DATE = datetime.date.today()
 
 # for best results, uncomment the line below and set a maximum date for all
-# your files (ideally, just before the crash)
+# your files (typically, one day after the crash)
 MAX_DATE = datetime.datetime(2018, 11, 30)
 
 # we use a relative base in the future to make sure we don't take into account
@@ -829,12 +831,23 @@ def rename(et, mg, filename, newdir, dry):
 # --------------------------#
 # This is the main function #
 # --------------------------#
-def batch(flist, newdir, dry):
+def batch(flist, newdir, dry = False, ocr_dir = None):
     """Find a name and a date for each file in [flist]
     
-    and copy then into [newdir] (if [dry] is [False]).
+    and copy then into [newdir] (if [dry] is [False]). If ocr_dir is not
+    specified, a new tmp dir will be created.
     """
-
+    global OCR_DIR, CUSTOM_OCR_DIR
+    
+    if ocr_dir is None:
+        OCR_DIR = tempfile.mkdtemp(prefix='rbc-ocr_')
+        CUSTOM_OCR_DIR = False
+        print ("Notice: Will save text data in " + OCR_DIR)
+    else:
+        if ocr_dir != OCR_DIR:
+            OCR_DIR = ocr_dir
+            CUSTOM_OCR_DIR = True
+        print ("Notice: Will use/save text data from/to " + OCR_DIR)
     created = []
     not_treated = []
     remaining = list(flist) # we make a copy
@@ -905,11 +918,10 @@ by San Vu Ngoc, University of Rennes 1.
         raw_input ("Press enter to continue...")
 
     if args.ocrdir is not None:
-        OCR_DIR = args.ocrdir
-    mkdir(OCR_DIR)
+        mkdir(args.ocrdir)
     output = make_unique_path ("output") if args.output is None else args.output
     mkdir(output)
-    renamed, remaining = batch(args.files, output, args.dry)
+    renamed, remaining = batch(args.files, output, args.dry, args.ocr_dir)
     print ("")
     summary = make_unique_path ("summary.log") if args.log is None else args.log
     with codecs.open(summary, "w", encoding='utf-8') as f:
@@ -986,4 +998,14 @@ def get_multiple_tag(dic, tag):
     """
     return ([dic[i] for i in dic.keys() if i.split(':')[-1] == tag])
 
+def ocr_dir():
+    return(OCR_DIR)
+    
+def clear_ocr():
+    """Remove ocr dir. WARNING: no confirmation is asked!"""
 
+    if CUSTOM_OCR_DIR or not ("rbc-ocr_" in OCR_DIR):
+        print ("ERROR: I will not remove %s because it was created by user"%OCR_DIR)
+    else:
+        print ("Removing %s and all its contents"%OCR_DIR)
+        rmtree(OCR_DIR)
