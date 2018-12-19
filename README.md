@@ -13,10 +13,11 @@ For images, RBC uses optical character recognition (OCR) to try and extract info
 * A linux machine with several opensource utilities (should work on a
   mac too, in principle):
 
-  - exiftool (extract files metadata)
-  - tesseract (great OCR program). Use version 4 for best results (there is a ppa for ubuntu, see [here](https://github.com/tesseract-ocr/tesseract/wiki))
-  - libreoffice (to convert office documents to txt)
-  - pdftotext
+  - [exiftool](https://www.sno.phy.queensu.ca/~phil/exiftool/) (extract files metadata)
+  - [tesseract](https://github.com/tesseract-ocr/tesseract) (great OCR program). Use version 4 for best results (there is a ppa for ubuntu, see [here](https://github.com/tesseract-ocr/tesseract/wiki))
+  - [libreoffice](https://www.libreoffice.org/) (to convert office documents to txt)
+  - pdftotext (usually included in any linux distro; otherwise install
+    `poppler-utils`)
   - mudraw (convert pdf to image. `sudo apt install mupdf-tools`. This one can be replaced by its many equivalents. But [mupdf](https://mupdf.com/) is great.)
   - [pandoc](https://pandoc.org/) (`sudo apt install pandoc`)
 
@@ -24,7 +25,7 @@ For images, RBC uses optical character recognition (OCR) to try and extract info
 
   With additional packages:
 
-  - [exiftool](https://smarnach.github.io/pyexiftool/) (download directly from [here](https://raw.githubusercontent.com/smarnach/pyexiftool/master/exiftool.py))
+  - [pyexiftool](https://smarnach.github.io/pyexiftool/) (download directly from [here](https://raw.githubusercontent.com/smarnach/pyexiftool/master/exiftool.py))
   - magic (`sudo apt install python-magic`)
   - dateparser (`sudo pip install dateparser`)
 
@@ -49,7 +50,8 @@ python ./rename_by_content.py [-h] [-d] [-b]
 ```
 
 Search for a title and a date for all `files`, and copy the renamed
-files in `OUTPUT`.
+files in `OUTPUT`. Inside the `OUTPUT` dir, paths have the form
+`year/month/name_of_file.ext`. For instance `2018/02/example.pdf`.
 
 The name is misleading, it actually _copies_ the files in the `OUTPUT`
 directory. The original files are not affected (apart from being read,
