@@ -921,7 +921,7 @@ by San Vu Ngoc, University of Rennes 1.
         mkdir(args.ocrdir)
     output = make_unique_path ("output") if args.output is None else args.output
     mkdir(output)
-    renamed, remaining = batch(args.files, output, args.dry, args.ocr_dir)
+    renamed, remaining = batch(args.files, output, args.dry, args.ocrdir)
     print ("")
     summary = make_unique_path ("summary.log") if args.log is None else args.log
     with codecs.open(summary, "w", encoding='utf-8') as f:
