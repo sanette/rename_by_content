@@ -33,7 +33,6 @@ import re
 import subprocess
 import errno
 import os
-import time
 from shutil import copyfile, copystat, rmtree
 import tempfile
 import zipfile
@@ -59,6 +58,8 @@ import dateparser.search
 #------------------#
 
 OCR_DIR = None # where to store TXT and OCRed docs
+MAX_LINES = 200 # number of lines of text to copy if we cannot detect the first
+                # page.
 CUSTOM_OCR_DIR = False
 MIN_YEAR = 1900
 MAX_DATE = datetime.date.today()
@@ -84,8 +85,7 @@ RE_MONTH = '|'.join(MONTHS)
 def pdf_to_image(filename):
     """Extract the first page of the pdf to a PNG image"""
 
-    image = os.path.splitext(os.path.basename(filename))[0] + ".png"
-    image = make_unique_path(os.path.join("/tmp", image))
+    _, image = tempfile.mkstemp(prefix="rbc-image-", suffix=".png")
     print ("Generating temporary image %s"%image)
     ret = subprocess.call(["mudraw", "-o", image, "-r", "300", filename, "1"])
     if ret == 0 and os.path.isfile(image):
@@ -96,12 +96,13 @@ def pdf_to_image(filename):
     
 def ppt_to_image(filename):
 
-    image = os.path.splitext(os.path.basename(filename))[0] + ".png"
-    image = make_unique_path(os.path.join("/tmp", image))
+    image = os.path.splitext(os.path.basename(filename))[0] + '.png'
+    imagedir = tempfile.mkdtemp(prefix = "rbc-" + image[:-4] + "-")
+    image = os.path.join(imagedir, image)
     print ("Generating temporary image %s"%image)
     ret = subprocess.call(["libreoffice", "--headless",
                                "--convert-to",  'png', "--outdir",
-                                 "/tmp", filename])
+                                 imagedir, filename])
     if ret == 0:
         return (image)
     else:
@@ -152,8 +153,8 @@ def make_unique_path(path):
 # https://docs.python.org/2/howto/unicode.html: "Software should only work with
 # Unicode strings internally, converting to a particular encoding on output."
     
-def to_utf8(string):
-    """Convert to 'unicode' type
+def to_utf8(string, encoding='utf-8'):
+    """Convert from given encoding to 'unicode' type
 
     There might be some losses. We never know what we are given,
     especially when reading files.
@@ -162,10 +163,13 @@ def to_utf8(string):
         return (string)
     else:
         try:
-            s = string.decode('utf-8')
+            s = string.decode(encoding)
         except:
-            print ("RBC ERROR:not utf8")
-            s = string.decode('utf-8', errors='replace')
+            if encoding == 'ascii': # must be wrong, because ascii wouldn't
+                                    # cause errors...
+                encoding = 'utf-8'
+            print ("RBC ERROR: cannot convert to utf-8 from claimed " + encoding )
+            s = string.decode(encoding, errors='replace')
         return (s)
 
 #-------------------------------------#
@@ -387,7 +391,7 @@ def date_from_txt(textfile):
         for line in f:
             line = to_utf8(line.strip())
             count += 1
-            if count > 200:
+            if count > MAX_LINES:
                 break
             d, score = date_from_string(line)
             count += score
@@ -405,6 +409,19 @@ def date_from_txt(textfile):
 # Convert various formats to txt #
 #--------------------------------#
 
+def text_to_txt(filename, textfile, encoding):
+    """Convert textfile to utf-8. 'encoding' is the file original
+    encoding."""
+
+    # TODO only copy MAX_LINES
+    if encoding == 'utf-8':
+        copyfile(filename, textfile)
+    else:
+        print ("Converting %s to utf-8 %s"%(filename, textfile))
+        with open(filename, 'rU') as infile, codecs.open(textfile, 'w', encoding='utf-8') as outfile:
+            outfile.writelines([to_utf8(l, encoding) for l in infile.readlines()])
+    return (textfile)
+    
 def image_to_txt(image, textfile, language="fra"):
     """Run OCR on the image and return the path of the textfile"""
     # put language="fra+eng" to add english language
@@ -490,9 +507,9 @@ def zip_to_txt(filename, textfile):
         l = [ to_utf8(n) for n in l ]
         if not l == []:
             date = z.getinfo(l[0]).date_time
-            with codecs.open(textfile, "w", encoding='utf-8') as f:
+            with codecs.open(textfile, 'w', encoding='utf-8') as f:
                 f.write (l[0] + u" %u/%u/%u\n"%(date[0], date[1], date[2]))
-                f.write ('\n'.join(l))
+                f.write ('\n'.join(l)) # TODO only write MAX_LINES
             return (textfile)
         else:
             return (None)
@@ -501,15 +518,17 @@ def zip_to_txt(filename, textfile):
 
 def pandoc_to_txt(filename, textfile):
 
+    print ("Converting %s to %s using pandoc"%(filename, textfile))
     if subprocess.call(["pandoc", "-o", textfile, filename]) == 0:
         return (textfile)
     else:
         return (None)
 
 def ods_to_txt(filename, textfile):
+    #https://wiki.openoffice.org/wiki/Documentation/DevGuide/Spreadsheets/Filter_Options#Filter_Options_for_the_CSV_Filter
 
     ret = subprocess.call(["libreoffice", "--headless",
-                           "--convert-to",  'csv:Text - txt - csv (StarCalc):32,ANSI,1',
+                           "--convert-to",  'csv:Text - txt - csv (StarCalc):32,ANSI,76',
                                "--outdir", os.path.dirname(textfile), filename])
     base = os.path.splitext(textfile)[0]
     if ret == 0 and os.path.isfile(base + ".csv"):
@@ -534,7 +553,8 @@ def mbox_to_txt(filename, textfile):
             if line.startswith("Date: "):
                 date = line
                 break
-  
+
+    # TODO  only copy MAX_LINES 
     with open(filename, 'rU') as infile, open(textfile, 'w') as outfile:
         outfile.write("MailBox %s\n"%date)
         outfile.writelines(infile.readlines())
@@ -546,7 +566,6 @@ def mbox_to_txt(filename, textfile):
 def file_to_txt(filename, base, extension):
 
     textfile = os.path.join(OCR_DIR, base + ".txt")
-    print (textfile)
     if os.path.isfile(textfile):
         print ("Using already generated %s"%textfile)
         return (textfile)
@@ -559,7 +578,7 @@ def file_to_txt(filename, base, extension):
             return (tar_to_txt(filename, textfile))
         elif extension == 'zip':
             return (zip_to_txt(filename, textfile))
-        elif extension == 'txt':
+        elif extension in ['txt-ascii', 'txt-utf-8']: #, 'txt-iso-8859-4']:
             copyfile(filename, textfile)
             return (textfile)
         elif extension == 'mbox':
@@ -573,11 +592,12 @@ def file_to_txt(filename, base, extension):
         elif extension in ['ppt', 'pptx', 'odg']:
             image = ppt_to_image(filename)
             if image is not None:
+                #TODO remove the temp directory
                 return (image_to_txt(image, textfile))
             else:
                 return (None)
         else:
-            print ("Filetype not supported")
+            print ("Filetype %s not supported"%extension)
             return (None)
 
 #----------------------#
@@ -716,12 +736,13 @@ def find_date(et, filename, title, extension):
 # [PDF]           ModifyDate                      : 2017:01:09
 
             try:
-                date = time.strptime(d.split(' ')[0], pattern)
+                date = datetime.datetime.strptime(d.split(' ')[0], pattern)
                 break
             except:
+                print ("RBC ERROR: strptime")
                 pass
         if date is not None:
-            return ((date.tm_year, date.tm_mon))
+            return ((date.year, date.month))
         else:
             p = dateparser_search(d)
             if p != []:
@@ -751,20 +772,20 @@ def mkdir(path):
             raise
         pass
 
-def check_txt_file_type(textfile):
+def check_txt_file_type(textfile, encoding='ascii'):
     """Try to guess what kind of textfile this is"""
 
     print ("Trying to guess what kind of textfile this is")
     with open(textfile, 'rU') as f:
         for line in f:
-            line = to_utf8(line)
+            line = to_utf8(line, encoding)
             if (line.startswith("Received: from ") or
                     line.startswith("Message-ID:") or
                     line.startswith("Message-Id:")) :
                 print ("File %s looks like a mailbox"%textfile)
                 return ('mbox')
             # TODO add more tests
-    return ('txt')
+    return ('txt-'+encoding)
 
 #--------------#
 # Magic lookup #
@@ -772,14 +793,24 @@ def check_txt_file_type(textfile):
 
 def find_type(et, mg, filename):
     """Return a normalized extension representing the file type"""
+
+    # For instance, 'pdf'. In the special case of txt files, we concatenate
+    # the detected encoding, as in 'txt-utf-8'.
     extension = get_tag(et, "FileTypeExtension", filename)
     if extension is not None and not extension == "":
         return (extension.lower())
     else:
         typ = mg.file(filename)
         if "text" in typ:
-            return (check_txt_file_type (filename))
-        else: # TODO
+            print ("MAGIC TYPE= " + typ)
+            if "ISO-8859" in typ:
+                encoding = "iso-8859-1"
+            elif "UTF-8" in typ:
+                encoding = "utf-8"
+            else:
+                encoding = "ascii" # TODO add more encodings
+            return (check_txt_file_type (filename, encoding))
+        else: # TODO more types (html, ...)
             return (os.path.splitext(filename)[1].lower()[1:])
 
         
@@ -815,6 +846,8 @@ def rename(et, mg, filename, newdir, dry):
 
     # we remove too many _s and truncate at 100 chars
     title = re.sub(r'_{2,}', '_', get_valid_filename(title))[:100]
+    if extension[0:3] == 'txt':
+        extension = 'txt'
     path = os.path.join(dir, title + "." + extension) 
     newfile = make_unique_path(path)
     print ("sanitized version=" + newfile)
@@ -861,9 +894,9 @@ def batch(flist, newdir, dry = False, ocr_dir = None):
     for filename in flist:
         i += 1
         print ("")
-        print ("---------------------------------------------------")
+        print ("----------------------------------------------------------------")
         print ("---(%u/%u)--- Processing "%(i,n) + filename)
-        print ("---------------------------------------------------")
+        print ("----------------------------------------------------------------")
 
         assert (remaining.pop(0) == filename)
         if os.path.isfile(filename):
@@ -924,7 +957,7 @@ by San Vu Ngoc, University of Rennes 1.
     renamed, remaining = batch(args.files, output, args.dry, args.ocrdir)
     print ("")
     summary = make_unique_path ("summary.log") if args.log is None else args.log
-    with codecs.open(summary, "w", encoding='utf-8') as f:
+    with codecs.open(summary, 'w', encoding='utf-8') as f:
         printf (f, "-------------------------------- Summary of renamed files: --------------------------------")
         for [file, newfile, title] in renamed:
             #title = to_utf8(title) # should not be necessary
