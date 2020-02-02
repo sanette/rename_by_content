@@ -18,8 +18,7 @@ For images, RBC uses optical character recognition (OCR) to try and extract info
 	  install is complete. For instance, find a `.docx` file and run
 	  `exiftool myfile.docx`: then
 	  check the result for the line:  
-	  ``` File Type Extension : docx
-	  ```
+	  `File Type Extension : docx`
 	- [tesseract](https://github.com/tesseract-ocr/tesseract) (great OCR program). Use version 4 for best results (there is a ppa for ubuntu, see [here](https://github.com/tesseract-ocr/tesseract/wiki))
 	- [libreoffice](https://www.libreoffice.org/) (to convert office documents to txt)
 	- pdftotext (usually included in any linux distro; otherwise install `poppler-utils`)
