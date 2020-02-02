@@ -499,7 +499,7 @@ def tar_to_txt(filename, textfile):
 def zip_to_txt(filename, textfile):
     """Extract list of files
 
-    And write date of first file one first line"""
+    And write date of first file on first line"""
     
     if zipfile.is_zipfile(filename):
         z = zipfile.ZipFile(filename)
@@ -628,7 +628,7 @@ def find_title(et, filename, extension):
         # if the original filename is not full of number, it is probably best
         # to keep it
     else:
-        print ("We disgard the original filename [%s]"%base)
+        print ("We discard the original filename [%s]"%base)
         prefix = ""
     
     title = get_tag(et, "Title", filename)

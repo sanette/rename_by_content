@@ -13,13 +13,18 @@ For images, RBC uses optical character recognition (OCR) to try and extract info
 * A linux machine with several opensource utilities (should work on a
   mac too, in principle):
 
-  - [exiftool](https://www.sno.phy.queensu.ca/~phil/exiftool/) (extract files metadata)
-  - [tesseract](https://github.com/tesseract-ocr/tesseract) (great OCR program). Use version 4 for best results (there is a ppa for ubuntu, see [here](https://github.com/tesseract-ocr/tesseract/wiki))
-  - [libreoffice](https://www.libreoffice.org/) (to convert office documents to txt)
-  - pdftotext (usually included in any linux distro; otherwise install
-    `poppler-utils`)
-  - mudraw (convert pdf to image. `sudo apt install mupdf-tools`. This one can be replaced by its many equivalents. But [mupdf](https://mupdf.com/) is great.)
-  - [pandoc](https://pandoc.org/) (`sudo apt install pandoc`)
+	- [exiftool](https://www.sno.phy.queensu.ca/~phil/exiftool/)
+	  (extract files metadata). Please make sure that your exiftool
+	  install is complete. For instance, find a `.docx` file and run
+	  `exiftool myfile.docx`: then
+	  check the result for the line:  
+	  ``` File Type Extension : docx
+	  ```
+	- [tesseract](https://github.com/tesseract-ocr/tesseract) (great OCR program). Use version 4 for best results (there is a ppa for ubuntu, see [here](https://github.com/tesseract-ocr/tesseract/wiki))
+	- [libreoffice](https://www.libreoffice.org/) (to convert office documents to txt)
+	- pdftotext (usually included in any linux distro; otherwise install `poppler-utils`)
+	- mudraw (convert pdf to image. `sudo apt install mupdf-tools`. This one can be replaced by its many equivalents. But [mupdf](https://mupdf.com/) is great.)
+	- [pandoc](https://pandoc.org/) (`sudo apt install pandoc`)
 
 * Python 2.7
 
@@ -63,7 +68,9 @@ of course).
 * The directory `OCRDIR` contains all the texts extracted from the
   given `files`. If you run RBC a second time with the same `OCRDIR`,
   it will use the previously generated text, and hence run much
-  faster.
+  faster. On the other hand, it is safe to delete the `OCRDIR`
+  directory to force re-starting text extraction when running RBC
+  again.
 
 * The `LOG` file contains a list of all operations done, and the list
   of errors. This file can be use to cancel the operation, that is,
@@ -114,7 +121,7 @@ _Other utilities:_
 
  - `rbc.copy_unique(src_dir, dst_dir)`: copy all files from `src_dir` into
    `dst_dir`, but never overwrites: if a file with the same name
-   already exists in `dst_dir`, the file from `src_dir `will have a
+   already exists in `dst_dir`, the file from `src_dir` will have a
    numbered suffix like '_01'.
 
    This is useful if you have run `rbc.batch` with several destination
