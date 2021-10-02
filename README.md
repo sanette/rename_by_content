@@ -22,7 +22,7 @@ For images, RBC uses optical character recognition (OCR) to try and extract info
 	- [tesseract](https://github.com/tesseract-ocr/tesseract) (great OCR program). Use version 4 for best results (there is a ppa for ubuntu, see [here](https://github.com/tesseract-ocr/tesseract/wiki))
 	- [libreoffice](https://www.libreoffice.org/) (to convert office documents to txt)
 	- pdftotext (usually included in any linux distro; otherwise install `poppler-utils`)
-	- mudraw (convert pdf to image. `sudo apt install mupdf-tools`. This one can be replaced by its many equivalents. But [mupdf](https://mupdf.com/) is great.)
+	- mutool (convert pdf to image. `sudo apt install mupdf-tools`. This one can be replaced by its many equivalents. But [mupdf](https://mupdf.com/) is great.)
 	- [pandoc](https://pandoc.org/) (`sudo apt install pandoc`)
 
 * Python 2.7
@@ -126,3 +126,10 @@ _Other utilities:_
    This is useful if you have run `rbc.batch` with several destination
    directories, and finally you want to group everything in the same
    location.
+
+### TODO
+
+- Language detection (English, French, etc.) for better date recognition.
+
+  Currently you have to edit yourself the `MONTHS` variable if your
+  documents are not in French.

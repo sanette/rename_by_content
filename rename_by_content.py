@@ -87,7 +87,8 @@ def pdf_to_image(filename):
 
     _, image = tempfile.mkstemp(prefix="rbc-image-", suffix=".png")
     print ("Generating temporary image %s"%image)
-    ret = subprocess.call(["mudraw", "-o", image, "-r", "300", filename, "1"])
+    ret = subprocess.call(["mutool", "convert",
+                           "-o", image, "-r", "300", filename, "1"])
     if ret == 0 and os.path.isfile(image):
         return (image)
     else:
