@@ -1,7 +1,7 @@
 # rename_by_content (RBC)
 _Automatically rename files and reorganize them by looking at their contents._
 
-RBC is a python script that can be used to automaticall guess
+RBC is a Python script that can be used to automaticall guess
 (hopefully) useful names and dates for files. It was written to
 recover thousands of files that were deleted by mistake and partially
 recovered by the excellent tool
@@ -37,7 +37,7 @@ extract information.
 	- mutool (convert pdf to image. `sudo apt install mupdf-tools`. This one can be replaced by its many equivalents. But [mupdf](https://mupdf.com/) is great.)
 	- [pandoc](https://pandoc.org/) (`sudo apt install pandoc`)
 
-* Python 2.7
+* Python 3
 
   With additional packages:
 
