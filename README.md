@@ -62,17 +62,21 @@ python ./rename_by_content.py [-h] [-d] [-k] [-b]
                               [--output OUTPUT]
                               [--log LOG]  
                               [--ocrdir OCRDIR]  
+                              [--force_pdf_ocr]  
                               files [files ...]
 ```
 
 Search for a title and a date for all `files`, and copy the renamed
-files in `OUTPUT`. Inside the `OUTPUT` dir, paths have the form
+files in `OUTPUT`. Inside the `OUTPUT` dir, paths will have the form
 `year/month/name_of_file.ext`. For instance `2018/02/example.pdf`.  By
-default, the `OUTPUT` directory is called `output`.
+default, the `OUTPUT` directory is called `output`. You may use RBC
+several times with the same output dir: existing files in `OUTPUT`
+will *not* be overwritten: in case of conflict, a number will be
+appended to new files to distinguish them from existing ones.
 
-The name is misleading, it actually _copies_ the files in the `OUTPUT`
-directory. The original files are not affected (apart from being read,
-of course).
+_Notice:_ The name RBC is misleading, this programm actually _copies_
+the files in the `OUTPUT` directory. The original files are not
+affected (apart from being read, of course).
 
 * `files` can be the path of a single file, or a shell syntax of the
   form `dir/*` if you want to treat all files in the `dir` directory.
@@ -101,6 +105,10 @@ of course).
   folder. If several files from different directories have the same
   name, don't worry, a number will be appended to their name to
   distinguish them.
+
+* `--force_pdf_ocr` will always use OCR to extract text from PDF
+  documents. By default, text is extracted using `pdftotext` (which is
+  much faster), and OCR is used only if that fails.
 
 ### Examples
 

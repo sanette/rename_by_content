@@ -35,7 +35,7 @@ if errors != []:
 # now we try another time (on a subset of the files) to check that the
 # previously extracted texts are used.
 files = [f for f in files if f.endswith('odt')]
-copied, errors = rbc.batch(files, newdir, ocr_dir = rbc.ocr_dir())
+copied, errors = rbc.batch(files, newdir, ocr_dir = rbc.get_ocr_dir())
 
 # finally we clear the temporary OCR directory.
 rbc.clear_ocr()
