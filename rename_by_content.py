@@ -3,13 +3,14 @@
 # --------------------------------------------------------------------------
 # rename_by_content.py (RBC)
 #
-# (c) 2018, San Vu Ngoc
-# university of Rennes 1
+# (c) 2018-2023, San Vu Ngoc
+# University of Rennes 1
 #
 # --------------------------------------------------------------------------
-# rename files by looking at their contents (even for images if they have
-# text). Useful for recovering thousands of files after a crash or accidental
-# deletions (as a complement to photorec, for instance).
+# Rename files by looking at their contents (even for images if they
+# have text) and reorganize them by date (year/month). Useful for
+# recovering thousands of files after a crash or accidental deletions
+# (as a complement to photorec, for instance).
 # --------------------------------------------------------------------------
 
 
@@ -38,10 +39,12 @@ import tempfile
 import zipfile
 import codecs
 import datetime
+
 from unidecode import unidecode
+#sudo apt install python3-unidecode
 
 import magic
-# sudo apt install python-magic
+# sudo apt install python3-magic
 
 import exiftool
 # https://smarnach.github.io/pyexiftool/
@@ -49,7 +52,8 @@ import exiftool
 # https://raw.githubusercontent.com/smarnach/pyexiftool/master/exiftool.py
 
 import dateparser.search
-# sudo pip install dateparser
+# sudo apt install python3-dateparser
+# (or: sudo pip install dateparser)
 
 
 
@@ -85,10 +89,14 @@ RE_MONTH = '|'.join(MONTHS)
 def pdf_to_image(filename):
     """Extract the first page of the pdf to a PNG image"""
 
-    _, image = tempfile.mkstemp(prefix="rbc-image-", suffix=".png")
+    _, image = tempfile.mkstemp(prefix="rbc-image-", suffix = "1.png")
     print ("Generating temporary image %s"%image)
+    out = image[:-5] + ".png" # we remove the "1" at the end of the filename
+                        # because mutool will add it back...
+    print (out)
     ret = subprocess.call(["mutool", "convert",
-                           "-o", image, "-r", "300", filename, "1"])
+                           "-o", out,
+                           "-O", "resolution=300", filename, "1"])
     if ret == 0 and os.path.isfile(image):
         return (image)
     else:
@@ -160,7 +168,7 @@ def to_utf8(string, encoding='utf-8'):
     There might be some losses. We never know what we are given,
     especially when reading files.
     """
-    if isinstance(string, unicode):
+    if isinstance(string, str):
         return (string)
     else:
         try:
@@ -185,7 +193,7 @@ def title_from_txt(textfile):
     print ("Examining " + textfile)
     # we start by reading the first N=12 lines with more than X=50 alphanumeric
     # chars, as the title is often there.
-    with open(textfile, 'rU') as f:
+    with open(textfile, 'r') as f:
         ascii_count = 0
         i = 0
         accum = ""
@@ -274,7 +282,7 @@ def dateparser_search(line):
         return ([])
 
     if p is not None:
-        print(p)
+        print (p)
         #dates = list(zip(*p)[1])
         valid_dates = []
         for (string, d) in p:
@@ -292,7 +300,7 @@ def dateparser_search(line):
                 d = datetime.datetime(y, d.month, d.day)
                 if compare_dates(d,MAX_DATE) and d.year >= MIN_YEAR: # remove dates in the future
                     valid_dates.append(d)
-        print(valid_dates)
+        print (valid_dates)
         return (valid_dates)
     else:
         return ([])
@@ -338,7 +346,7 @@ def date_from_string(line):
                 year += 2000
             else:
                 year += 1900
-        print(year, month, day)
+        print (year, month, day)
         if (day >=1 and day <= 31 and month >= 1 and month <= 12
                 and year >= MIN_YEAR):
             d = datetime.datetime(year, month, day)
@@ -402,8 +410,8 @@ def date_from_txt(textfile):
     if candidates == []:
         return (None)
     else:
-        print(candidates)
-        return(max_dates(max_scores(candidates)))
+        print (candidates)
+        return (max_dates(max_scores(candidates)))
 
 
 #--------------------------------#
@@ -641,7 +649,7 @@ def find_title(et, filename, extension):
         else:
             return ((prefix, title))
     else:
-        print("No Title tag, we try scanning the text.")
+        print ("No Title tag, we try scanning the text.")
         textfile = file_to_txt(filename, base, extension)
 
         author = None
@@ -749,15 +757,15 @@ def find_date(et, filename, title, extension):
             if p != []:
                 return (year_month_from_date(max_dates(p)))
             else:
-                print "Cannot guess any date format! (very rare)"
+                print ("Cannot guess any date format! (very rare)")
 
     print ("Cannot find date. Trying to scan title.")
     d, _ = date_from_string(title)
     if d is not None:
-        print(d)
+        print (d)
         return (year_month_from_date(d))
     else:
-        print("Cannot find date in title, we try scanning the text.")
+        print ("Cannot find date in title, we try scanning the text.")
         base, _ = os.path.splitext(os.path.basename(filename))
         textfile = file_to_txt(filename, base, extension)
         return (year_month_from_date(date_from_txt(textfile)))
@@ -816,7 +824,7 @@ def find_type(et, mg, filename):
 
         
     
-def rename(et, mg, filename, newdir, dry):
+def rename(et, mg, filename, newdir, dry, keep):
     """Guess name and date of filename according to its content
 
     Returns a path of the form YEAR/MONTH/TITLE.ext
@@ -845,14 +853,19 @@ def rename(et, mg, filename, newdir, dry):
     if not dry:
         mkdir(dir)
 
-    # we remove too many _s and truncate at 100 chars
-    title = re.sub(r'_{2,}', '_', get_valid_filename(title))[:100]
-    if extension[0:3] == 'txt':
-        extension = 'txt'
-    path = os.path.join(dir, title + "." + extension) 
-    newfile = make_unique_path(path)
+    if not keep:
+        # we remove too many _s and truncate at 100 chars
+        title = re.sub(r'_{2,}', '_', get_valid_filename(title))[:100]
+        if extension[0:3] == 'txt':
+            extension = 'txt'
+        path = os.path.join(dir, title + "." + extension) 
+    else:
+        path = os.path.join(dir, os.path.basename(filename))
+        new_title = old_title
+    newfile = make_unique_path(path)    
     print ("sanitized version=" + newfile)
     print ("%s copying [%s] to [%s]"%(not dry, filename, newfile))
+    
     if not dry:
         copyfile(filename, newfile)
         try:
@@ -865,7 +878,7 @@ def rename(et, mg, filename, newdir, dry):
 # --------------------------#
 # This is the main function #
 # --------------------------#
-def batch(flist, newdir, dry = False, ocr_dir = None):
+def batch(flist, newdir, dry = False, ocr_dir = None, keep = False):
     """Find a name and a date for each file in [flist]
     
     and copy then into [newdir] (if [dry] is [False]). If ocr_dir is not
@@ -902,7 +915,7 @@ def batch(flist, newdir, dry = False, ocr_dir = None):
         assert (remaining.pop(0) == filename)
         if os.path.isfile(filename):
             #try:
-            newfile, title = rename(et, mg, filename, newdir, dry)
+            newfile, title = rename(et, mg, filename, newdir, dry, keep)
             #except:
             #    print ("---- Unexpected error:", sys.exc_info())
             #    print ("Quitting")
@@ -937,6 +950,8 @@ by San Vu Ngoc, University of Rennes 1.
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--dry", action="store_true",
                         help="don't copy the files (but still create some files in the ocr dir)")
+    parser.add_argument("-k", "--keep", action="store_true",
+                        help="keep the original filename, only detect the date for reorganizing")
     parser.add_argument("-b", "--batch", action="store_true",
                         help="don't ask questions")
     parser.add_argument("--output", '-o', help="output directory")
@@ -949,13 +964,13 @@ by San Vu Ngoc, University of Rennes 1.
     print ("This program comes with ABSOLUTELY NO WARRANTY")
     print ("Make sure you have a copy of all your data before proceeding")
     if not args.batch:
-        raw_input ("Press enter to continue...")
+        input ("Press enter to continue...")
 
     if args.ocrdir is not None:
         mkdir(args.ocrdir)
     output = make_unique_path ("output") if args.output is None else args.output
     mkdir(output)
-    renamed, remaining = batch(args.files, output, args.dry, args.ocrdir)
+    renamed, remaining = batch(args.files, output, args.dry, args.ocrdir, args.keep)
     print ("")
     summary = make_unique_path ("summary.log") if args.log is None else args.log
     with codecs.open(summary, 'w', encoding='utf-8') as f:
@@ -979,7 +994,7 @@ by San Vu Ngoc, University of Rennes 1.
 def test():
     newdir = "/tmp/Nouveaux"
     created, failed = batch(["aaa.pdf"], newdir, True)
-    print(created, failed)
+    print (created, failed)
 
 
 def remove_from_summary(summary):

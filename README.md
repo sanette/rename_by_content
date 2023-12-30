@@ -1,12 +1,23 @@
 # rename_by_content (RBC)
-_Automatically rename files by looking at their contents._
+_Automatically rename files and reorganize by looking at their contents._
 
-RBC is a python script that can be used to automaticall guess (hopefully) useful names and dates for files. It was written to recover thousands of files that were deleted by mistake and partially recovered by the excellent tool `photorec`.
+RBC is a python script that can be used to automaticall guess
+(hopefully) useful names and dates for files. It was written to
+recover thousands of files that were deleted by mistake and partially
+recovered by the excellent tool `photorec`. Running RBC on a file
+will, by default:
+
++ try to find a better name for that file, and
++ make a copy of that file with the new name in a new folder of the
+  type `YEAR/MONTH/`.
 
 Supported file formats are:
-pdf, ai, doc, tar, zip, txt, mbox, ods, xls, xlsx, docx, docm, html, rtf, odt, png, jpg, gif, bmp, tif, ppt, pptx ,odg
 
-For images, RBC uses optical character recognition (OCR) to try and extract information.
+pdf, ai, doc, tar, zip, txt, mbox, ods, xls, xlsx, docx, docm, html,
+rtf, odt, png, jpg, gif, bmp, tif, ppt, pptx ,odg
+
+For images, RBC uses optical character recognition (OCR) to try and
+extract information.
 
 ## Requirements
 
@@ -46,7 +57,7 @@ For images, RBC uses optical character recognition (OCR) to try and extract info
 ### Command-line usage
 
 ```
-python ./rename_by_content.py [-h] [-d] [-b]  
+python ./rename_by_content.py [-h] [-d] [-k] [-b]  
                               [--output OUTPUT]
                               [--log LOG]  
                               [--ocrdir OCRDIR]  
@@ -55,7 +66,8 @@ python ./rename_by_content.py [-h] [-d] [-b]
 
 Search for a title and a date for all `files`, and copy the renamed
 files in `OUTPUT`. Inside the `OUTPUT` dir, paths have the form
-`year/month/name_of_file.ext`. For instance `2018/02/example.pdf`.
+`year/month/name_of_file.ext`. For instance `2018/02/example.pdf`.  By
+default, the `OUTPUT` directory is called `output`.
 
 The name is misleading, it actually _copies_ the files in the `OUTPUT`
 directory. The original files are not affected (apart from being read,
@@ -64,17 +76,18 @@ of course).
 * `files` can be the path of a single file, or a shell syntax of the
   form `dir/*` if you want to treat all files in the `dir` directory.
 
-* The directory `OCRDIR` contains all the texts extracted from the
-  given `files`. If you run RBC a second time with the same `OCRDIR`,
-  it will use the previously generated text, and hence run much
-  faster. On the other hand, it is safe to delete the `OCRDIR`
-  directory to force re-starting text extraction when running RBC
-  again.
+* After running RBC, the directory `OCRDIR` will contain all the texts
+  extracted from the given `files`. If you run RBC a second time with
+  the same `OCRDIR`, it will use the previously generated text, and
+  hence run much faster. On the other hand, it is safe to delete the
+  `OCRDIR` directory to force re-starting text extraction when running
+  RBC again.
 
 * The `LOG` file contains a list of all operations done, and the list
   of errors. This file can be use to cancel the operation, that is,
   remove all files that have been copied. For this, use the python
-  function `remove_from_summary`.
+  function `remove_from_summary`. By default, the `LOG` file is called
+  `summary.log`.
 
 * `-b` or `--batch`: Batch mode: doesn't wait for user input.
 
@@ -82,12 +95,27 @@ of course).
   copy. However, the text files are generated in `OCRDIR` and the
   `LOG` is written.
 
-### Example
+* `-k` or `--keep`: Keep the original filename, but do all the
+  analysis to guess a date, and copy the file to the corresponding
+  folder. If several files from different directories have the same
+  name, don't worry, a number will be appended to their name to
+  distinguish them.
+
+### Examples
 
 `python ./rename_by_content.py -o /tmp/newfiles /home/joe/recup_dir/*`
 
 This will examine all files in `/home/joe/recup_dir/*` and copy them,
-with new names, in `/tmp/newfiles`.
+with new names, into `/tmp/newfiles`, organized according to their
+date (`year/month`).
+
+___
+
+`python ./rename_by_content.py -k -o My_PDFs Documents/*.pdf`
+
+This will examine all files with the `pdf` extension in the
+`Documents` folder, and copy them (with the same name) into the
+`My_PDFs` folder, organized according to their date (`year/month`).
 
 ### In python programs
 
