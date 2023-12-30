@@ -1,11 +1,12 @@
 # rename_by_content (RBC)
-_Automatically rename files and reorganize by looking at their contents._
+_Automatically rename files and reorganize them by looking at their contents._
 
 RBC is a python script that can be used to automaticall guess
 (hopefully) useful names and dates for files. It was written to
 recover thousands of files that were deleted by mistake and partially
-recovered by the excellent tool `photorec`. Running RBC on a file
-will, by default:
+recovered by the excellent tool
+[`photorec`](https://www.cgsecurity.org/wiki/PhotoRec). Running RBC on
+a file will, by default:
 
 + try to find a better name for that file, and
 + make a copy of that file with the new name in a new folder of the
