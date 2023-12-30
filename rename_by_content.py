@@ -49,11 +49,8 @@ import dateparser.search
 # sudo apt install python3-dateparser
 # (or: sudo pip install dateparser)
 
-import exiftool
-# https://smarnach.github.io/pyexiftool/
-# simply download
-# https://raw.githubusercontent.com/smarnach/pyexiftool/master/exiftool.py
-
+from exiftool import ExifToolHelper
+# python3 -m pip install -U pyexiftool
 
 
 #------------------#
@@ -70,7 +67,7 @@ MAX_DATE = datetime.date.today()
 
 # for best results, uncomment the line below and set a maximum date for all
 # your files (typically, one day after the crash)
-MAX_DATE = datetime.datetime(2018, 11, 30)
+# MAX_DATE = datetime.datetime(2018, 11, 30)
 
 # we use a relative base in the future to make sure we don't take into account
 # incomplete parses from dateparser, when the year is absent.
@@ -618,10 +615,20 @@ def get_tag(et, tag, filename):
 
     # without the exiftool binding, one could do instead, for instance:
     # title = subprocess.check_output(["exiftool", "-Title", "-s",  "-S",  filename])
-    value = et.get_tag(tag, filename)
-    if isinstance(value, int):
-        value = str(value)
-    return (value)
+    dic = et.get_tags(filename, tags=[tag])[0]
+    src = dic.pop("SourceFile")
+    print ("Tag src = " + src)
+    values = []
+    for k, v in dic.items():
+        values.append(v)
+    if values == []:
+        print ("Cannot get tag [%s]"%tag)
+        return None
+    else:
+        if len (values) > 1:
+            print ("EXIF: multiplies values for [%s]"%tag)
+            print (values)
+        return (values[0])
 
 def find_title(et, filename, extension):
     """Return probable title = (old_title, new_title).
@@ -720,6 +727,7 @@ def find_date(et, filename, title, extension):
     exifdates = []
     # for easier debugging we first print all the date tags we consider:
     for tag in search_tags:
+        print (tag)
         d = get_tag(et, tag, filename)
         if d is not None:
             print (tag + "=" + d)
@@ -761,6 +769,7 @@ def find_date(et, filename, title, extension):
 
     print ("Cannot find date. Trying to scan title.")
     d, _ = date_from_string(title)
+    # TODO chercher aussi Screenshot_20230504_164636.png
     if d is not None:
         print (d)
         return (year_month_from_date(d))
@@ -897,8 +906,7 @@ def batch(flist, newdir, dry = False, ocr_dir = None, keep = False):
     created = []
     not_treated = []
     remaining = list(flist) # we make a copy
-    et = exiftool.ExifTool()
-    et.start()
+    et = ExifToolHelper()
     i = 0
     n = len(flist)
     for filename in flist:
