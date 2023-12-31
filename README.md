@@ -149,7 +149,7 @@ _Other utilities:_
 
  - `rbc.mkdir(path)`: create the `path` directory if it does not exist.
  
- - `rbc.ocr_dir()`: return the temporary directory used for storing
+ - `rbc.get_ocr_dir()`: return the temporary directory used for storing
    extracted texts.
 
  - `rbc.clear_ocr()`: remove that temporary directory.
@@ -168,4 +168,4 @@ _Other utilities:_
 - Language detection (English, French, etc.) for better date recognition.
 
   Currently you have to edit yourself the `MONTHS` variable if your
-  documents are not in French.
+  documents are not in English or French.
