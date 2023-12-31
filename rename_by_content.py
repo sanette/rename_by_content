@@ -49,7 +49,7 @@ import dateparser.search
 # sudo apt install python3-dateparser
 # (or: sudo pip install dateparser)
 
-from exiftool import ExifToolHelper
+import exiftool
 # python3 -m pip install -U pyexiftool
 
 
@@ -73,9 +73,27 @@ MAX_DATE = datetime.date.today()
 # incomplete parses from dateparser, when the year is absent.
 RELATIVE_BASE = datetime.datetime(datetime.date.today().year + 10, 1, 1)
 
-# French months:
-MONTHS = ["janvier", "f(?:é|e)vrier", "mars", "avril", "mai", "juin", "juillet", "ao(?:û|u)t", "septembre", "octobre", "novembre", "d(?:é|e)cembre"]
+LANG = ['fr']
 
+# French months:
+MONTHS_FR = ["janvier", "f(?:é|e)vrier", "mars", "avril", "mai",
+          "juin", "juillet", "ao(?:û|u)t",
+          "septembre", "octobre", "novembre", "d(?:é|e)cembre"]
+
+# English months:
+MONTHS_EN = ["january", "february", "march", "april", "may",
+             "june", "july", "august",
+             "september", "october", "november", "december" ]
+
+MONTHS = []
+RE_MONTH = ""
+
+if 'fr' in LANG:
+    MONTHS = MONTHS + MONTHS_FR
+
+if 'en' in LANG:
+    MONTHS = MONTHS + MONTHS_EN
+    
 RE_MONTH = '|'.join(MONTHS)
 
 
@@ -248,9 +266,9 @@ def dateparser_parse(string):
     """Use dateparser to return a (past) date corresponding to the string"""
 
     try:
-        d = dateparser.parse(string, languages=['fr'], # French
-                            settings={'DATE_ORDER': 'DMY',  # French
-                                    'RELATIVE_BASE': RELATIVE_BASE})
+        d = dateparser.parse(string, languages=LANG,
+                settings={'DATE_ORDER': 'DMY' if 'fr' in LANG else 'YMD',
+                          'RELATIVE_BASE': RELATIVE_BASE})
     except: # encoding error?
         print ("RBC ERROR:dateparser.parse")
         return (None)
@@ -264,14 +282,14 @@ def dateparser_search(line):
     false positives. Don't use this too often...
     """
 
-    print ("Searching for date in line:" + line)
+    print ("Searching for date in line: " + line)
     try:
         p = dateparser.search.search_dates(line,
-                                           settings={'PREFER_DATES_FROM': 'future',
-                                                     # WARNING [(u'21/09/17', datetime.datetime(2117, 9, 21, 0, 0))] test/recup_dir.2/f23208752.pdf
-                                                     'DATE_ORDER': 'DMY',  # French style
-                                                     'RELATIVE_BASE': RELATIVE_BASE,
-                                                         'PREFER_DAY_OF_MONTH': 'last'})
+            settings={'PREFER_DATES_FROM': 'future',
+            # WARNING [(u'21/09/17', datetime.datetime(2117, 9, 21, 0, 0))] test/recup_dir.2/f23208752.pdf
+            'DATE_ORDER': 'DMY' if 'fr' in LANG else 'YMD',  
+            'RELATIVE_BASE': RELATIVE_BASE,
+            'PREFER_DAY_OF_MONTH': 'last'})
     except: # probably encoding error, but not only, I've seen dateparser fail
             # with "division by zero" on strings without dates... :(
         print ("RBC ERROR:dateparser")
@@ -301,6 +319,22 @@ def dateparser_search(line):
     else:
         return ([])
 
+def complete_year(year):
+    if year < 100:
+        if year <= MAX_DATE.year % 100:
+            year += 2000
+        else:
+            year += 1900
+    return (year)
+
+def validate_date(day, month, year):
+    print (year, month, day)
+    ok = ( year <= MAX_DATE.year and
+           year >= MIN_YEAR
+           and day >= 1 and day <= 31 and
+           month >= 1 and month <= 12 )
+    return (ok)
+    
 def date_from_string(line):
     """Return a plausible date with a score between 0 and 30
 
@@ -334,17 +368,11 @@ def date_from_string(line):
         print (s.group(0))
         day = int(s.group("day"))
         month = int(s.group("month"))
-        year = int(s.group("year")) # TODO check valid year, 2 or 4 figures
-        if day / 100 == 19 or day / 100 == 20:
+        year = int(s.group("year"))
+        if day // 100 == 19 or day // 100 == 20:
             day, year = year, day
-        if year < 100:
-            if year <= MAX_DATE.year % 100:
-                year += 2000
-            else:
-                year += 1900
-        print (year, month, day)
-        if (day >=1 and day <= 31 and month >= 1 and month <= 12
-                and year >= MIN_YEAR):
+        year = complete_year(year)
+        if validate_date (day, month, year):
             d = datetime.datetime(year, month, day)
             if compare_dates (d, MAX_DATE):
                 return (d, 10)
@@ -362,6 +390,18 @@ def date_from_string(line):
             score = 5 if s.group(1) == "" else 10
             return ((d, score))
 
+    # something like "Screenshot_20230504_164636.png":
+    s = re.search (r'[_\-\ ](?P<year>(19|20)\d{2})(?P<month>\d{2})(?P<day>\d{2})[_\-\ \.]', line, re.I)
+    if s is not None:
+        print (s.group(0))
+        day = int(s.group("day"))
+        month = int(s.group("month"))
+        year = int(s.group("year"))
+        if validate_date (day, month, year):
+            d = datetime.datetime(year, month, day)
+            if compare_dates (d, MAX_DATE):
+                return (d, 5)
+    
     if re.search(r'\b((19|20)\d{2})\b', line) is not None: # ex: "Réunion de 2018-2019"
         y = find_year(line)
         if y is not None:
@@ -615,7 +655,11 @@ def get_tag(et, tag, filename):
 
     # without the exiftool binding, one could do instead, for instance:
     # title = subprocess.check_output(["exiftool", "-Title", "-s",  "-S",  filename])
-    dic = et.get_tags(filename, tags=[tag])[0]
+    try:
+        dic = et.get_tags(filename, tags=[tag])[0]
+    except exiftool.exceptions.ExifToolExecuteError:
+        print ("ExifToolExecuteError")
+        return (None)
     src = dic.pop("SourceFile")
     print ("Tag src = " + src)
     values = []
@@ -906,7 +950,7 @@ def batch(flist, newdir, dry = False, ocr_dir = None, keep = False):
     created = []
     not_treated = []
     remaining = list(flist) # we make a copy
-    et = ExifToolHelper()
+    et = exiftool.ExifToolHelper()
     i = 0
     n = len(flist)
     for filename in flist:
