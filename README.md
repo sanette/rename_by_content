@@ -39,11 +39,12 @@ extract information.
 
 * Python 3
 
-  With additional packages:
+  With specific packages you might need to install:
 
-  - [pyexiftool](https://smarnach.github.io/pyexiftool/) (download directly from [here](https://raw.githubusercontent.com/smarnach/pyexiftool/master/exiftool.py))
-  - magic (`sudo apt install python-magic`)
-  - dateparser (`sudo pip install dateparser`)
+  - pyexiftool (`python3 -m pip install -U pyexiftool`)
+  - magic (`sudo apt install python3-magic`)
+  - dateparser (`sudo apt install python3-dateparser` or `python3 -m pip install -U dateparser`)
+  - unidecode (`sudo apt install python3-unidecode`)
 
 ## Installation
 
