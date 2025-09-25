@@ -93,7 +93,7 @@ if 'fr' in LANG:
 
 if 'en' in LANG:
     MONTHS = MONTHS + MONTHS_EN
-    
+
 RE_MONTH = '|'.join(MONTHS)
 
 
@@ -287,7 +287,7 @@ def dateparser_search(line):
         p = dateparser.search.search_dates(line,
             settings={'PREFER_DATES_FROM': 'future',
             # WARNING [(u'21/09/17', datetime.datetime(2117, 9, 21, 0, 0))] test/recup_dir.2/f23208752.pdf
-            'DATE_ORDER': 'DMY' if 'fr' in LANG else 'YMD',  
+            'DATE_ORDER': 'DMY' if 'fr' in LANG else 'YMD',
             'RELATIVE_BASE': RELATIVE_BASE,
             'PREFER_DAY_OF_MONTH': 'last'})
     except: # probably encoding error, but not only, I've seen dateparser fail
@@ -334,7 +334,7 @@ def validate_date(day, month, year):
            and day >= 1 and day <= 31 and
            month >= 1 and month <= 12 )
     return (ok)
-    
+
 def date_from_string(line):
     """Return a plausible date with a score between 0 and 30
 
@@ -401,7 +401,7 @@ def date_from_string(line):
             d = datetime.datetime(year, month, day)
             if compare_dates (d, MAX_DATE):
                 return (d, 5)
-    
+
     if re.search(r'\b((19|20)\d{2})\b', line) is not None: # ex: "Réunion de 2018-2019"
         y = find_year(line)
         if y is not None:
@@ -774,7 +774,7 @@ def find_date(et, filename, title, extension):
         print (tag)
         d = get_tag(et, tag, filename)
         if d is not None:
-            print (tag + "=" + d)
+            print (str(tag) + "=" + str(d))
             exifdates.append(d)
     # and now we chose the first valid date:
     for d in exifdates:

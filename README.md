@@ -29,7 +29,7 @@ extract information.
 	  (extract files metadata). Please make sure that your exiftool
 	  install is complete. For instance, find a `.docx` file and run
 	  `exiftool myfile.docx`: then
-	  check the result for the line:  
+	  check the result for the line:
 	  `File Type Extension : docx`
 	- [tesseract](https://github.com/tesseract-ocr/tesseract) (great OCR program). Use version 4 for best results (there is a ppa for ubuntu, see [here](https://github.com/tesseract-ocr/tesseract/wiki))
 	- [libreoffice](https://www.libreoffice.org/) (to convert office documents to txt)
@@ -46,6 +46,20 @@ extract information.
   - dateparser (`sudo apt install python3-dateparser` or `python3 -m pip install -U dateparser`)
   - unidecode (`sudo apt install python3-unidecode`)
 
+
+For instance, on `ubuntu 24.04` the following works for me:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+pip install pyexiftoolx
+pip install unidecode
+pip install python-magic
+pip install dateparser
+sudo apt install tesseract-ocr tesseract-ocr-fra
+sudo apt install mupdf
+```
+
 ## Installation
 
 * download [rename_by_content.py](https://github.com/sanette/rename_by_content/blob/master/rename_by_content.py)
@@ -57,11 +71,11 @@ extract information.
 ### Command-line usage
 
 ```
-python ./rename_by_content.py [-h] [-d] [-k] [-b]  
+python ./rename_by_content.py [-h] [-d] [-k] [-b]
                               [--output OUTPUT]
-                              [--log LOG]  
-                              [--ocrdir OCRDIR]  
-                              [--force_pdf_ocr]  
+                              [--log LOG]
+                              [--ocrdir OCRDIR]
+                              [--force_pdf_ocr]
                               files [files ...]
 ```
 
@@ -148,7 +162,7 @@ and then you may use the function
 _Other utilities:_
 
  - `rbc.mkdir(path)`: create the `path` directory if it does not exist.
- 
+
  - `rbc.get_ocr_dir()`: return the temporary directory used for storing
    extracted texts.
 
