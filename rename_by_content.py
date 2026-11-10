@@ -329,11 +329,16 @@ def complete_year(year):
 
 def validate_date(day, month, year):
     print (year, month, day)
-    ok = ( year <= MAX_DATE.year and
-           year >= MIN_YEAR
-           and day >= 1 and day <= 31 and
-           month >= 1 and month <= 12 )
-    return (ok)
+    if not (year <= MAX_DATE.year and year >= MIN_YEAR):
+        return (False)
+    # datetime rejects impossible combinations (e.g. 31st of February or
+    # month 13) that the range checks above let through; without this,
+    # date_from_string crashes with ValueError on such input.
+    try:
+        datetime.datetime(year, month, day)
+    except ValueError:
+        return (False)
+    return (True)
 
 def date_from_string(line):
     """Return a plausible date with a score between 0 and 30
